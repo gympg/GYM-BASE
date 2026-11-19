@@ -26,14 +26,27 @@
 <body>
 <div class="cargando" id="carga"><img id="logo" alt=""><b id="nombre"></b><span id="estado">Cargando…</span></div>
 <script>
+  /* Si hay un error de escritura en la configuración, se guarda la línea para mostrarla en pantalla */
+  window.__errLinea = 0;
+  window.addEventListener('error', function (e) { if (!window.__errLinea) window.__errLinea = e.lineno || -1; });
+</script>
+<script>
   /* ======================= CONFIGURA AQUÍ ======================= */
-  var APP    = 'https://script.google.com/macros/s/AKfycbwZmJbIN_VIVdDqSzz1rBTnvJ9mzUuRid69kwhEWvGv0BSNPmnGkQD713_rdZfZHxwaZw/exec';   // URL /exec de la app (Implementar → Gestionar implementaciones)
+  var APP    = 'https://script.google.com/macros/s/AKfycbwZmJbIN_VIVdDqSzz1rBTnvJ9mzUuRid69kwhEWvGv0BSNPmnGkQD713_rdZfZHxwaZw/exec';
   var NOMBRE = 'GYM BASE OVA';
   var LOGO   = '';   // ej.: 'logo.png' si está en este mismo repositorio. Vacío = ícono por defecto
-  var FONDO  = '#0A1430', tarjeta: '#111D3F';
+  var FONDO  = '#0A1430';
   var ACENTO = '#3FE0C5';
   /* ============================================================== */
+</script>
+<script>
   (function () {
+    var malConfig = typeof APP === 'undefined';
+    if (typeof NOMBRE === 'undefined') window.NOMBRE = '';
+    if (typeof LOGO === 'undefined') window.LOGO = '';
+    if (typeof FONDO === 'undefined') window.FONDO = '#0A1430';
+    if (typeof ACENTO === 'undefined') window.ACENTO = '#3FE0C5';
+    if (typeof ACENTO2 === 'undefined') window.ACENTO2 = ACENTO;
     var $ = function (id) { return document.getElementById(id); };
     if (!LOGO) LOGO = 'data:image/svg+xml,' + encodeURIComponent("<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='" + ACENTO + "'/><stop offset='1' stop-color='" + ACENTO2 + "'/></linearGradient></defs><rect width='64' height='64' rx='18' fill='url(#g)'/><path d='M14 27v10M20.5 21v22M43.5 21v22M50 27v10M20.5 32h23' stroke='#0A1430' stroke-width='5.5' stroke-linecap='round'/></svg>");
     document.title = NOMBRE;
@@ -46,7 +59,14 @@
       $('carga').className = 'cargando error'; $('estado').textContent = texto;
       if (boton) { var b = document.createElement('button'); b.textContent = 'Reintentar'; b.onclick = function () { location.reload(); }; $('carga').appendChild(b); }
     }
+    // 0) error de escritura en "CONFIGURA AQUÍ" (comilla o punto y coma de menos, comillas curvas ‘ ’ “ ”…)
+    if (malConfig || window.__errLinea) {
+      aviso('Hay un error de escritura en la zona "CONFIGURA AQUÍ" de index.html' + (window.__errLinea > 0 ? ' (línea ' + window.__errLinea + ')' : '') +
+        '. Revisa que cada valor esté entre comillas rectas \' \' y que la línea termine en ; — por ejemplo: var APP = \'https://script.google.com/macros/s/…/exec\';');
+      return;
+    }
     // 1) URL de la app bien configurada (evita el error "El archivo que solicitaste no existe")
+    APP = String(APP).trim();
     if (!/^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]{20,}\/exec$/.test(APP)) {
       aviso('Falta configurar la dirección de la app: edita index.html y pega en APP la URL que termina en /exec.');
       return;
